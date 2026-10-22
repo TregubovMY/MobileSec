@@ -12,17 +12,18 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.google.firebase.example.makeitso.data.model.ErrorMessage
-import com.google.firebase.example.makeitso.ui.home.HomeRoute
-import com.google.firebase.example.makeitso.ui.home.HomeScreen
-import com.google.firebase.example.makeitso.ui.settings.SettingsRoute
-import com.google.firebase.example.makeitso.ui.settings.SettingsScreen
+import com.google.firebase.example.makeitso.data.repository.AuthRepository
+import com.google.firebase.example.makeitso.ui.profile.ProfileRoute
+import com.google.firebase.example.makeitso.ui.profile.ProfileScreen
 import com.google.firebase.example.makeitso.ui.signin.SignInRoute
 import com.google.firebase.example.makeitso.ui.signin.SignInScreen
 import com.google.firebase.example.makeitso.ui.signup.SignUpRoute
@@ -33,10 +34,15 @@ import com.google.firebase.example.makeitso.ui.todoitem.TodoItemScreen
 import com.google.firebase.example.makeitso.ui.todolist.TodoListRoute
 import com.google.firebase.example.makeitso.ui.todolist.TodoListScreen
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+    @Inject lateinit var authRepository: AuthRepository
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -46,6 +52,14 @@ class MainActivity : ComponentActivity() {
             val scope = rememberCoroutineScope()
             val snackbarHostState = remember { SnackbarHostState() }
             val navController = rememberNavController()
+            val startDestination: Any =
+                if (authRepository.currentUser != null) TodoListRoute else SignInRoute
+
+            LaunchedEffect(Unit) {
+                authRepository.currentUserIdFlow.drop(1).filter { it == null }.collect {
+                    navController.openAsRoot(SignInRoute)
+                }
+            }
 
             MakeItSoTheme {
                 Surface(
@@ -58,34 +72,25 @@ class MainActivity : ComponentActivity() {
                     ) { innerPadding ->
                         NavHost(
                             navController = navController,
-                            startDestination = TodoListRoute,
+                            startDestination = startDestination,
                             modifier = Modifier.padding(innerPadding)
                         ) {
-                            composable<HomeRoute> { HomeScreen(
-                                openSettingsScreen = {
-                                    navController.navigate(SettingsRoute) { launchSingleTop = true }
-                                }
-                            ) }
                             composable<TodoListRoute> { TodoListScreen(
                                 openSettingsScreen = {
-                                    navController.navigate(SettingsRoute) { launchSingleTop = true }
+                                    navController.navigate(ProfileRoute) { launchSingleTop = true }
                                 },
                                 openTodoItemScreen = { itemId ->
                                     navController.navigate(TodoItemRoute(itemId)) { launchSingleTop = true }
                                 }
                             ) }
-                            composable<SettingsRoute> { SettingsScreen(
-                                openHomeScreen = {
-                                    navController.navigate(TodoListRoute) { launchSingleTop = true }
-                                },
-                                openSignInScreen = {
-                                    navController.navigate(SignInRoute) { launchSingleTop = true }
+                            composable<ProfileRoute> { ProfileScreen(
+                                showErrorSnackbar = { errorMessage ->
+                                    val message = getErrorMessage(errorMessage)
+                                    scope.launch { snackbarHostState.showSnackbar(message) }
                                 }
                             ) }
                             composable<SignInRoute> { SignInScreen(
-                                openHomeScreen = {
-                                    navController.navigate(TodoListRoute) { launchSingleTop = true }
-                                },
+                                openHomeScreen = { navController.openAsRoot(TodoListRoute) },
                                 openSignUpScreen = {
                                     navController.navigate(SignUpRoute) { launchSingleTop = true }
                                 },
@@ -95,9 +100,7 @@ class MainActivity : ComponentActivity() {
                                 }
                             ) }
                             composable<SignUpRoute> { SignUpScreen(
-                                openHomeScreen = {
-                                    navController.navigate(TodoListRoute) { launchSingleTop = true }
-                                },
+                                openHomeScreen = { navController.openAsRoot(TodoListRoute) },
                                 showErrorSnackbar = { errorMessage ->
                                     val message = getErrorMessage(errorMessage)
                                     scope.launch { snackbarHostState.showSnackbar(message) }
@@ -117,6 +120,10 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    private fun NavController.openAsRoot(route: Any) {
+        navigate(route) { popUpTo(0) { inclusive = true } }
     }
 
     private fun setSoftInputMode() {

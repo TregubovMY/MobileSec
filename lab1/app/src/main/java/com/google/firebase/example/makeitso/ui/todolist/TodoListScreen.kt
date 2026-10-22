@@ -22,7 +22,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -38,7 +37,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.firebase.example.makeitso.R
 import com.google.firebase.example.makeitso.data.model.TodoItem
 import com.google.firebase.example.makeitso.ui.shared.CenterTopAppBar
-import com.google.firebase.example.makeitso.ui.shared.LoadingIndicator
 import com.google.firebase.example.makeitso.ui.theme.DarkBlue
 import com.google.firebase.example.makeitso.ui.theme.MakeItSoTheme
 import kotlinx.serialization.Serializable
@@ -56,24 +54,14 @@ fun TodoListScreen(
     openTodoItemScreen: (String) -> Unit,
     viewModel: TodoListViewModel = hiltViewModel()
 ) {
-    val isLoadingUser by viewModel.isLoadingUser.collectAsStateWithLifecycle()
+    val todoItems = viewModel.todoItems.collectAsStateWithLifecycle(emptyList())
 
-    if (isLoadingUser) {
-        LoadingIndicator()
-    } else {
-        val todoItems = viewModel.todoItems.collectAsStateWithLifecycle(emptyList())
-
-        TodoListScreenContent(
-            todoItems = todoItems.value,
-            openSettingsScreen = openSettingsScreen,
-            openTodoItemScreen = openTodoItemScreen,
-            updateItem = viewModel::updateItem
-        )
-    }
-
-    LaunchedEffect(true) {
-        viewModel.loadCurrentUser()
-    }
+    TodoListScreenContent(
+        todoItems = todoItems.value,
+        openSettingsScreen = openSettingsScreen,
+        openTodoItemScreen = openTodoItemScreen,
+        updateItem = viewModel::updateItem
+    )
 }
 
 @Composable

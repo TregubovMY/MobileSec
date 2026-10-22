@@ -33,9 +33,16 @@
     <string name="edit_todo_item">Edit todo item</string>
     <string name="delete_todo_item">Delete this todo item</string>
 
-    <!-- Settings Screen -->
-    <string name="settings">Settings</string>
-    <string name="sign_in">Sign In</string>
+    <!-- Passkeys -->
+    <string name="passkey_server_url" translatable="false">http://10.0.2.2:3000</string>
+
+    <!-- Profile Screen -->
+    <string name="profile">Profile</string>
+    <string name="sign_in_method">Sign-in method</string>
+    <string name="name">Name</string>
+    <string name="email_verified">Email verified</string>
+    <string name="create_passkey">Create passkey</string>
+    <string name="user_id">User ID</string>
     <string name="sign_out">Sign Out</string>
     <string name="delete_account">Delete Account</string>
 

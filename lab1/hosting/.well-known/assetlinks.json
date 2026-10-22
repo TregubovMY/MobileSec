@@ -1,0 +1,15 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.get_login_creds",
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.google.firebase.example.makeitso",
+      "sha256_cert_fingerprints": [
+        "1C:BF:56:1C:34:50:CF:55:D5:2F:56:90:A9:32:7A:30:C8:E5:CF:CB:F7:70:FE:BC:3F:AE:67:1E:79:77:05:5D"
+      ]
+    }
+  }
+]

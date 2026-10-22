@@ -1,5 +1,6 @@
 package com.google.firebase.example.makeitso.ui.signup
 
+import android.content.Context
 import com.google.firebase.example.makeitso.MainViewModel
 import com.google.firebase.example.makeitso.R
 import com.google.firebase.example.makeitso.data.model.ErrorMessage
@@ -19,6 +20,7 @@ class SignUpViewModel @Inject constructor(
         get() = _shouldRestartApp.asStateFlow()
 
     fun signUp(
+        context: Context,
         email: String,
         password: String,
         repeatPassword: String,
@@ -40,7 +42,7 @@ class SignUpViewModel @Inject constructor(
         }
 
         launchCatching(showErrorSnackbar) {
-            authRepository.signUp(email, password)
+            authRepository.signUp(context, email, password)
             _shouldRestartApp.value = true
         }
     }
